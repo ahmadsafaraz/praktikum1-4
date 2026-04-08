@@ -38,3 +38,115 @@
 <img width="1820" height="980" alt="Screenshot (255)" src="https://github.com/user-attachments/assets/023ad4ae-7ffc-4378-a208-177b98356429" />
 
 
+# PRAKTIKUM 3
+
+
+
+# 1. Model artikel pengendali
+
+```
+public function index()
+{
+    $title = 'Daftar Artikel';
+    $model = new ArtikelModel();
+    $artikel = $model->findAll();
+
+    return view('artikel/index', compact('artikel', 'title'));
+}
+```
+
+# 2. Detail artikel Berdasarkan Slug
+
+```
+public function view($slug)
+{
+    $model = new ArtikelModel();
+    $artikel = $model->where(['slug' => $slug])->first();
+
+    if (! $artikel) {
+        throw PageNotFoundException::forPageNotFound();
+    }
+
+    $title = $artikel['judul'];
+    return view('artikel/detail', compact('artikel', 'title'));
+}
+```
+
+# PRAKTIKUM 4
+
+- Membuat formulir login
+- Mengambil masukan email dan kata sandi
+- Konversi login dengan tabel user
+- Menggunakanpassword_verify()
+- Simpan login sesi
+- Membuat logout
+- Membatasi akses admin menggunakan filter auth
+
+# 1. Membuat Database
+
+<img width="1404" height="745" alt="image" src="https://github.com/user-attachments/assets/a8c833cb-5671-4bc3-8f6d-d777489c55e4" />
+
+# 2. Membuat user.php dan login.php
+
+# user php
+
+```
+<?php
+namespace App\Controllers;
+use App\Models\UserModel;
+
+class User extends BaseController
+{
+    public function index()
+    {
+        $title = 'Daftar User';
+        $model = new UserModel();
+        $users = $model->findAll();
+        return view('user/index', compact('users', $title));
+    }
+
+    public function login()
+    {
+        helper(['form']);
+        $email = $this->request->getPost('email');
+        $password = $this->request->getPost('password');
+
+        if (!$email) {
+            return view('user/login');
+        }
+
+        $session = session();
+        $model = new UserModel();
+        $login = $model->where('useremail', $email)->first();
+
+        if ($login) {
+            $pass = $login['userpassword'];
+            if (password_verify($password, $pass)) {
+                $login_data = [
+                    'user_id' => $login['id'],
+                    'user_name' => $login['username'],
+                    'user_email' => $login['useremail'],
+                    'logged_in' => TRUE,
+                ];
+                $session->set($login_data);
+                return redirect('admin/artikel');
+            } else {
+                $session->setFlashdata("flash_msg", "Password salah.");
+                return redirect()->to('/user/login');
+            }
+        } else {
+            $session->setFlashdata("flash_msg", "email tidak terdaftar.");
+            return redirect()->to('/user/login');
+        }
+    }
+
+    public function logout()
+    {
+        session()->destroy();
+        return redirect()->to('/user/login');
+    }
+}
+```
+
+<img width="1820" height="980" alt="image" src="https://github.com/user-attachments/assets/75719d4f-2695-427d-aa43-80016d6abb91" />
+
